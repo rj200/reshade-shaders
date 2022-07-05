@@ -51,6 +51,9 @@ uniform float EffectFactor < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 1.0;
 	ui_tooltip = "Specifies the factor the desaturation is applied. Range from 0.0, which means the effect is off (normal image), till 1.0 which means the desaturated parts are\nfull greyscale (or color blending if that's enabled)";
 > = 0.9;
+uniform bool InvertEffect <
+	ui_tooltip = "Emphasize the rest of the image and de-emphasize the focussed area instead.";
+> = false;
 
 #include "ReShade.fxh"
 
@@ -83,7 +86,8 @@ float CalculateDepthDiffCoC(float2 texcoord : TEXCOORD)
 
 void PS_Otis_EMZ_Desaturate(float4 vpos : SV_Position, float2 texcoord : TEXCOORD, out float4 outFragment : SV_Target)
 {
-	const float depthDiffCoC = CalculateDepthDiffCoC(texcoord.xy);	
+	float depthDiffCoC = CalculateDepthDiffCoC(texcoord.xy);	
+	if(InvertEffect) depthDiffCoC = 1-depthDiffCoC;
 	const float4 colFragment = tex2D(ReShade::BackBuffer, texcoord);
 	const float greyscaleAverage = (colFragment.x + colFragment.y + colFragment.z) / 3.0;
 	float4 desColor = float4(greyscaleAverage, greyscaleAverage, greyscaleAverage, depthDiffCoC);
